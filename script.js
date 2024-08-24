@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const profileName = document.getElementById('profile-name');
     const profileLinks = document.getElementById('profile-link');
     const profileBio = document.getElementById('profile-bio');
+    const profileUsername = document.getElementById('profile-username');
 
     // Function to load and parse the configuration file
     async function loadConfig() {
@@ -26,15 +27,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         const includeForks = config.includeForks === 'true';
 
         // Fetch user profile data
-        const userResponse = await fetch(`https://api.github.com/users/${username}`);
+        let userResponse;
+        try {
+            userResponse = await fetch(`https://api.github.com/users/${username}`);
+            if (!userResponse.ok) throw new Error('User not found');
+        } catch (error) {
+            userResponse = await fetch(`https://api.github.com/users/octocat`);
+        }
         const userData = await userResponse.json();
 
-        // Set profile photo and name
+        // Set profile photo, name, and username
         profilePhoto.src = userData.avatar_url;
         profileName.textContent = userData.name || 'GitHub User';
+        profileUsername.textContent = `[ ${userData.login} ]`;
 
         // Set profile links
-        const link = 'https://github.com/' + username;
+        const link = 'https://github.com/' + userData.login;
         profileLinks.innerHTML = `
             <a href="${link}" target="_blank" class="text-blue-400 hover:text-blue-300">View GitHub Profile</a>
         `;
